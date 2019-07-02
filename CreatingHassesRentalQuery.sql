@@ -1,8 +1,8 @@
 USE master 
 GO 
 
---DROP DATABASE HassesRental
---GO 
+DROP DATABASE HassesRental
+GO 
 
 CREATE DATABASE HassesRental
 GO 
@@ -54,15 +54,15 @@ GO
 CREATE TABLE Person ( 
 PersonId int PRIMARY KEY Identity, 
 FirstName nvarchar(50) NOT NULL, 
-LastName nvarchar(50) NOT NULL, 
-AddressId int NOT NULL REFERENCES Address(AddressId)
+LastName nvarchar(50) NOT NULL
 )
 GO 
 
 CREATE TABLE Customer ( 
 CustomerId int PRIMARY KEY Identity,
 PersonId int NOT NULL REFERENCES Person(PersonId),
-MembershipLevelId int NOT NULL REFERENCES MembershipLevel(MembershipLevelId)
+MembershipLevelId int NOT NULL REFERENCES MembershipLevel(MembershipLevelId), 
+AddressId int NOT NULL REFERENCES Address(AddressId)
 ) 
 GO 
 
@@ -76,12 +76,11 @@ GO
 CREATE TABLE Movie (
 MovieId int PRIMARY KEY Identity, 
 MovieTitle nvarchar(50) NOT NULL, 
-GenreId int NOT NULL REFERENCES Genre(GenreId), 
-PriceLevelId int NOT NULL REFERENCES PriceLevel(PriceLevelId),
-RatingId int NOT NULL REFERENCES Rating(RatingId), 
-OfferId int NOT NULL REFERENCES Offer(OfferId),
-LocationId int NOT NULL REFERENCES Address(AddressId)
-
+GenreId int NULL REFERENCES Genre(GenreId), 
+PriceLevelId int NULL REFERENCES PriceLevel(PriceLevelId),
+RatingId int NOT NULL DEFAULT 1 REFERENCES Rating(RatingId), 
+OfferId int NOT NULL DEFAULT 1 REFERENCES Offer(OfferId),
+InStock bit NOT NULL DEFAULT 1
 )
 GO 
 
@@ -102,21 +101,21 @@ PaymentDate date NOT NULL
 ) 
 GO 
 
-CREATE TABLE Actor (
-ActorId int PRIMARY KEY Identity, 
-PersonId int NOT NULL REFERENCES Person(PersonId)
-) 
-GO 
+--CREATE TABLE Actor (
+--ActorId int PRIMARY KEY Identity, 
+--PersonId int NOT NULL REFERENCES Person(PersonId)
+--) 
+--GO 
 
-CREATE TABLE Director (
-DirectorId int PRIMARY KEY Identity, 
-PersonId int NOT NULL REFERENCES Person(PersonId)
-) 
-GO 
+--CREATE TABLE Director (
+--DirectorId int PRIMARY KEY Identity, 
+--PersonId int NOT NULL REFERENCES Person(PersonId)
+--) 
+--GO 
 
 CREATE TABLE MovieActor (
 MovieId int FOREIGN KEY REFERENCES Movie(MovieId) NOT NULL,
-ActorId int FOREIGN KEY REFERENCES Actor(ActorId) NOT NULL,
+ActorId int FOREIGN KEY REFERENCES Person(PersonId) NOT NULL,
 PRIMARY KEY (MovieId, ActorId)
 ) 
 GO 
@@ -124,7 +123,7 @@ GO
 
 CREATE TABLE MovieDirector (
 MovieId int REFERENCES Movie(MovieId) NOT NULL,
-DirectorId int REFERENCES Director(DirectorId) NOT NULL,
+DirectorId int REFERENCES Person(PersonId) NOT NULL,
 PRIMARY KEY (MovieId, DirectorId)
 ) 
 GO 
@@ -158,41 +157,34 @@ VALUES ('Apostrofgatan 13', 78455, 'Kalix'),
 
 GO 
 
-SET IDENTITY_INSERT ADDRESS ON
-GO 
-
-INSERT Address (AddressId, StreetName, ZipCode, City)
-VALUES (9999, 'The Warehouse', 11111, 'InStore')
-GO 
-
-SET IDENTITY_INSERT ADDRESS OFF 
-GO 
-
-INSERT Person (FirstName, LastName, AddressId)
-VALUES ('Janne', 'Karlsson', 1), 
-('Danne', 'Eriksson', 2),
-('Nanne', 'Grönwall', 3),
-('Manne', 'Kattson', 4),
-('Ingmar', 'Bergman', 5),
-('George', 'Clooney', 6),
-('Demi', 'Moore', 7),
-('Quentin', 'Tarantino', 8)
+INSERT Person (FirstName, LastName) VALUES 
+('Janne', 'Karlsson'), 
+('Danne', 'Eriksson'),
+('Nanne', 'Grönwall'),
+('Manne', 'Kattson'),
+('Ingmar', 'Bergman'),
+('George', 'Clooney'),
+('Demi', 'Moore'),
+('Quentin', 'Tarantino')
 GO
 
-INSERT Actor (PersonId)
-VALUES (6), (7)
-GO 
+--INSERT Actor (PersonId)
+--VALUES (6), (7)
+--GO 
 
-INSERT Director (PersonId)
-VALUES (5), (8)
-GO 
+--INSERT Director (PersonId)
+--VALUES (5), (8)
+--GO 
 
 INSERT MembershipLevel (LevelName, PriceModifier)
 VALUES ('Standard', 1), ('Silver', 0.9), ('Gold', 0.75)
 GO
 
-INSERT Customer (PersonId, MembershipLevelId)
-VALUES (1, 1), (2, 2), (3, 3), (4, 3)
+INSERT Customer (PersonId, MembershipLevelId, AddressId) VALUES 
+(1, 1, 1), 
+(2, 2, 2), 
+(3, 3, 3), 
+(4, 3, 4)
 GO
 
 INSERT GENRE (GenreName)
@@ -203,21 +195,37 @@ INSERT RATING (RatingScore)
 VALUES (1.0), (2.0), (3.0), (4.0), (5.0), (6.0), (7.0), (8.0), (9.0), (10.0)
 GO 
 
-INSERT OFFER (OfferName, PriceModifier)
-VALUES ('Standard', 1), ('ThreeForTwo', 0.66), ('HalfPriceFriday', 0.5)
+INSERT OFFER (OfferName, PriceModifier) VALUES 
+('Standard', 1), 
+('ThreeForTwo', 0.66), 
+('HalfPriceFriday', 0.5)
 GO 
 
-INSERT Movie (MovieTitle, GenreId, RatingId, OfferId, PriceLevelId, LocationId)
-VALUES ('Kill Bill', 4, 9, 1, 2, 9999), ('Oceans Eleven', 4, 7, 2, 1, 9999), ('Alien', 1, 5, 3, 4, 9999), ('Titanic', 3, 4, 1, 1, 9999), ('Young at heart', 5, 10, 1, 5, 9999)
+INSERT Movie (MovieTitle, GenreId, RatingId, OfferId, PriceLevelId) VALUES 
+('Kill Bill', 4, 9, 1, 2), 
+('Oceans Eleven', 4, 7, 2, 1), 
+('Alien', 1, 5, 3, 4), 
+('Titanic', 3, 4, 1, 1), 
+('Young at heart', 5, 10, 1, 5)
 GO 
 
 
-INSERT MovieActor (MovieId, ActorId)
-VALUES (2, 1), (1, 1), (3, 1), (4, 1), (5, 2), (5, 1), (3, 2)
+INSERT MovieActor (MovieId, ActorId) VALUES 
+(2, 6), 
+(1, 6), 
+(3, 6), 
+(4, 6), 
+(5, 7), 
+(5, 6), 
+(3, 7)
 GO
 
-INSERT MovieDirector (MovieId, DirectorId)
-VALUES (1, 2), (2, 2), (3, 1), (4, 1), (5, 2)
+INSERT MovieDirector (MovieId, DirectorId) VALUES 
+(1, 8), 
+(2, 8), 
+(3, 5), 
+(4, 5), 
+(5, 8)
 GO
 
 INSERT Rental (MovieId, CustomerId, PickUpDate, ReturnDate)
@@ -230,8 +238,6 @@ VALUES (1, 1, '2019-06-13'), (2, 2, '2019-07-01'), (3, 3, '2019-05-22'), (1, 4, 
 
 
 
-
-
-
-
+--SELECT ActorId, COUNT(MovieId) NumberofMovies FROM MovieActor
+--GROUP BY ActorId
 
